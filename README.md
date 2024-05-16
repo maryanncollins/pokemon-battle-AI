@@ -3,7 +3,7 @@
 <b> This repository is part of our Erdos Institute May-Summer 2024 Data Science Boot Camp project. We aim to generate and train an AI to predict likely winners of competitive Pokémon Video Game Championships (VGC) battles utilizing text-based replay records from the online battle simulator [Pokémon Showdown](https://pokemonshowdown.com/). </b>
 <br>
 
-![Screenshot of a online battle on Pokémon Showdown](https://i.imgur.com/rBp0BPI.png)
+![Screenshot of a online battle on Pokémon Showdown](https://github.com/maryanncollins/pokemon-battle-AI/assets/133918905/43c03791-0e0e-4e27-a5e6-db8a49e4ed4a)
 <br>
 
 
