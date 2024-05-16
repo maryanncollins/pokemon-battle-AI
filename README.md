@@ -22,6 +22,6 @@ The dataset is compiled from replay logs on Pokémon Showdown. In competitive Po
 
 ### Initial Questions:
 - Which factors have the most significant impact on the outcome of a battle? How many rounds of a battle are needed to train a model on to predict a winner? 
-- What is the ideal output for this model? Try to predict a winner after every round or just at the start of the battle?
+- What is the ideal output for this model? Should we try to predict a winner after every round or just at the start of the battle?
 - By utilizing data gathered from previous battles, what level of accuracy can be achieved in predicting the winner of a future battle between two new teams?
 
