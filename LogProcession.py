@@ -16,7 +16,7 @@ col_order = ['battle_id', 'turn', 'total_turn', 'rank', 'weather', 'field', 'con
 'p2b_form', 'p2b_hp', 'p2b_ability', 'p2b_item', 'p2b_move', 'p2b_status', 'p2b_tera', 'p2b_stat_boost', 'p2b_status_other', 
 'p2c_form', 'p2c_hp', 'p2c_ability', 'p2c_item', 'p2c_move', 'p2c_status', 'p2c_tera', 
 'p2d_form', 'p2d_hp', 'p2d_ability', 'p2d_item', 'p2d_move', 'p2d_status', 'p2d_tera',  'win']
-sto_dict = {'Taunt':3,'Encore':3,'confusion':4,'Throat Chop':2,'Heal Block':2,'Slow Start':5}
+sto_dict = {'Taunt':4,'Encore':4,'Throat Chop':3,'Heal Block':3,'Slow Start':6}
 
 def write_error(string, line, num):
     with open('error.txt', 'a') as file:
@@ -116,19 +116,10 @@ def bt_switch(battle,line):
 
 
 
-
-
-
-
-
-
-
-
-
 def bt_move(battle,line):
     player, position_code, pokemon_name, pokemon = seperate_pokemon_position(battle,line[1])
     move = line[2]
-    if move != 'Struggle' and '[from]ability: Dancer' not in line:
+    if move != 'Struggle' and '[from]ability: Dancer' not in line and '[from]move: Copycat' not in line and '[from]ability: Magic Bounce' not in line:
         if move in pokemon.move:
             pokemon.move[move] -= 1
         else:
@@ -237,24 +228,24 @@ def bt_start(battle,line):
             pokemon.status_other[sto] = sto_dict[sto]
         elif sto.startswith('perish'):
             pokemon.status_other['perish'] = 4 - int(sto[-1])             # perish song, larger means closer to death
-        else:
+        elif sto != 'Future Sight':
             pokemon.status_other[sto] = 1
 
 def bt_end(battle,line):
     player, position_code, pokemon_name, pokemon = seperate_pokemon_position(battle,line[1])
     if line[-1] == '[partiallytrapped]':
         del pokemon.status_other['partiallytrapped']
-    elif line[-1] != '[silent]':
+    elif '[silent]' not in line or ('[silent]' in line and line[2] in ['Throat Chop']):
         item = line[2]
         if item.startswith('ability: '):  
             item = item[9:]
         elif item.startswith('move: '):
             item = item[6:]
-        if item not in ['Neutralizing Gas','Illusion']:
+        if item not in ['Neutralizing Gas','Illusion', 'Future Sight']:
             if item not in pokemon.status_other:
                 write_error('end error',line,battle.num)
             else:
-                del pokemon.status_other[item]
+                del pokemon.status_other[item]   
 
 
 def bt_fieldstart(battle,line):
@@ -281,6 +272,11 @@ def bt_status(battle,line):
     pokemon.status = [status,1]
     if status == 'slp':
         pokemon.status[1] = 3
+
+def bt_cant(battle,line):
+    player, position_code, pokemon_name, pokemon = seperate_pokemon_position(battle,line[1])
+    if line[2] == 'slp':
+        pokemon.status[1] -= 1
 
 def bt_curestatus(battle,line):
     player, position_code, pokemon_name, pokemon = seperate_pokemon_position(battle,line[1])
@@ -391,7 +387,7 @@ def bt_endability(battle,line):
 def line_handler(battle,line):
     global erroritem
     if line[0] == 'turn':
-        if battle.turn != int(line[1]):
+        if battle.turn != int(line[1])-1:
             write_error('turn not match!',line,battle.num)
     elif line[0] in ['switch','drag','replace']:    #'replace' is for Zoroark, fix this later
         bt_switch(battle,line)
@@ -433,6 +429,8 @@ def line_handler(battle,line):
         bt_swapsideconditions(battle,line)   
     elif line[0] == '-status':
         bt_status(battle,line) 
+    elif line[0] == 'cant':
+        bt_cant(battle,line)
     elif line[0] == '-curestatus':
         bt_curestatus(battle,line)
     elif line[0] == 'detailschange':
@@ -483,7 +481,7 @@ def line_handler(battle,line):
 
 def get_battle_situation(battle):
     situation = {}
-    situation['turn'] = battle.turn-1
+    situation['turn'] = battle.turn
     if battle.weather[0]:
         situation['weather'] = battle.weather[0] + ':' + str(battle.weather[1])
     if battle.field[0]:
@@ -507,11 +505,14 @@ def get_battle_situation(battle):
             situation[pcs+'_form'] = pokemon.form
             situation[pcs+'_hp'] = pokemon.hp
             if pokemon.status[0] in ['tox','slp']:
-                situation[pcs+'_status'] = pokemon.status[0]+':'+str(pokemon.status[0])
+                situation[pcs+'_status'] = pokemon.status[0]+':'+str(pokemon.status[1])
             elif pokemon.status[0]:
                 situation[pcs+'_status'] = pokemon.status[0]
             status_others = []
             for sto in pokemon.status_other:
+                if isinstance(pokemon.status_other[sto],int) and pokemon.status_other[sto] <= 0:
+                    write_error('status_error',[sto,str(pokemon.status_other[sto]),str(battle.turn)],battle.num)
+                    del pokemon.status_other[sto]
                 status_others.append(sto+":"+str(pokemon.status_other[sto]))
             if status_others:
                 situation[pcs+'_status_other'] = ','.join(status_others)
@@ -547,7 +548,7 @@ def get_battle_situation(battle):
             situation[pcs+'_form'] = pokemon.form
             situation[pcs+'_hp'] = pokemon.hp
             if pokemon.status[0] in ['tox','slp']:
-                situation[pcs+'_status'] = pokemon.status[0]+':'+str(pokemon.status[0])
+                situation[pcs+'_status'] = pokemon.status[0]+':'+str(pokemon.status[1])
             elif pokemon.status[0]:
                 situation[pcs+'_status'] = pokemon.status[0]
             situation[pcs+'_item'] = pokemon.item
@@ -623,33 +624,41 @@ def log_process(file_path):
     battle_situations = []
     item_traceback = []                                         #to do : add tracebacks
     ability_traceback = []
-    for turn in turn_log[1:]:
+    battle_end = False
+    for turn in turn_log[1:]:    
+        upkeep = 0
         for line in turn:
+            if line[0] == 'upkeep':
+                battle.end_turn()
             if line[0] == 'win':
                 winner = line[1]
                 if winner == battle.player['p1'].name:
                     win = 1
                 elif winner == battle.player['p2'].name:
-                    win = 0
+                    win = -1
                 else:
-                    win = 0.5
+                    win = 0
                     write_error('winner error',line,battle.num)
+                battle_end = True
                 break
             elif line[0] == 'tie':
-                win = 0.5
+                win = 0
+                battle_end = True
                 break
+            elif line[0] == '-message' and line[1].endswith('forfeited.'):
+                battle_end = True
             else:
                 line_handler(battle,line)
-
-
-
         #print(battle.player['p1'].show_all_pokemon())
         #print(battle.player['p1'].position,battle.player['p1'].backup)
         #print(battle.player['p2'].show_all_pokemon())
         #print(battle.player['p2'].position,battle.player['p2'].backup)
         #print(battle.turn,battle.player['p1'].alive_number(),battle.player['p2'].alive_number())
-        battle.end_turn()
-        battle_situations.append(get_battle_situation(battle))
+        
+        if battle_end:
+            break            
+        else:
+            battle_situations.append(get_battle_situation(battle))
 
     for situation in battle_situations:
         situation['win'] = win
@@ -669,7 +678,11 @@ for file_name in os.listdir(directory):
         battle_situations = log_process(file_path)
         if battle_situations:
             dfs.append(pd.DataFrame(battle_situations))
+
 df = pd.concat(dfs, sort=False)
+for col in col_order:
+    if col not in df.columns:
+        df[col] = None
 df = df[col_order]
 df.to_csv('output.csv', index=False)
 
