@@ -31,15 +31,19 @@ def get_vector_by_name(name):
 
 
 
-def get_weight(rank,turn,total_turn):
-    return (1 + (rank-1000)/400)*(turn+1)/(total_turn+1)*(1+np.log(total_turn+1))
+def get_weight(row):                #e^-(hp_dif^2) prevents learning from falling number
+    rank, turn, total_turn = row['rank'], row['turn'], row['total_turn']
+    hp_dif = (row['p1a_hp'] + row['p1b_hp'] + row['p1c_hp'] + row['p1d_hp'] - row['p2a_hp'] - row['p2b_hp'] - row['p2c_hp'] - row['p2d_hp'])/200
+    weight = (1 + (rank-1000)/400)*(turn+1)/(total_turn+1)*(1+0.2*np.log(total_turn+1))*np.exp(-(hp_dif)**2)
+    if row['p1_alive'] != row['p2_alive']:
+        weight *= 0.2                                                                       
+    return weight
 
 def vectorize(row):
-    weight = get_weight(row['rank'],row['turn'],row['total_turn'])
     win=row['win']
     pokemon_dict = {}
     player_dict = {}
-    for p in ['p1a','p1b','p1c','p1d','p2a','p2b','p2c','p2d']:
+    for p in ['p1a','p1b','p1c','p1d','p2a','p2b','p2c','p2d']:     
         name_v = get_vector_by_name(row[p +'_form'])
         stat_v = [int(row[p +'_hp'])]
         boost_v = [0]*7
@@ -101,12 +105,12 @@ def vectorize(row):
                     bt = int(b.split(':')[1])
                     boost_v[boost_to_code[bn]] = bt
         if p in ['p1a','p1b','p2a','p2b']:
-            pokemon_dict[p] = name_v + stat_v + status_v + boost_v + status_other_v
+            pokemon_dict[p] = name_v + stat_v + status_v + boost_v + status_other_v         #65
         else:
-            pokemon_dict[p] = name_v + stat_v + status_v
+            pokemon_dict[p] = name_v + stat_v + status_v                              #54
 
     for p in ['p1','p2']:
-        side_v = [0,0,0]
+        side_v = [0,0,0]                                                                    
         side = get_value(row,p+'_side','')
         if side:
             side = side.split(',')
@@ -162,14 +166,18 @@ def vectorize(row):
     for p in ['p1a','p1b','p1c','p1d','p2a','p2b','p2c','p2d']:
         result[p] = pokemon_dict[p]
     result['output'] = (win + 1)/2
-    result['weight'] = weight
+    result['weight'] = get_weight(row)
+
+
+
+
     return result
 
 
 
-for datafile in ['test01.csv','train01.csv']:
+for datafile in ['test02.csv','train02.csv']:
     data = pd.read_csv(datafile)
     #data_f = data[(data['rank'] > 1200) & ((data['total_turn'] - data['turn']) < 4)]
     data_f = data
     vectorized_data = pd.DataFrame(data_f.apply(vectorize, axis=1).tolist())
-    vectorized_data.to_csv("vectorized_"+datafile,index=False)
+    vectorized_data.to_csv('vectorized_'+datafile,index=False)

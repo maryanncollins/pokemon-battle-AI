@@ -92,7 +92,7 @@ def count_string(directory,string,number):
             print(d,dic[d])
 
 
-check_string('./log','cant',1000)
+check_string('./log','[silent]',1000)
 #count_string('./log','Taunt',2)
 '''
 for filename in os.listdir('./log'):
