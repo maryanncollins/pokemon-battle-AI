@@ -1,14 +1,5 @@
 ---------------------
 
-5.24 update: trainingdata02.csv
-
-- Fixed some problems in _status_other.
-- Wrong data in trainingdata01.csv like “slp:slp” is fixed to be “slp:3”,
-	where 3 means 3 more turns to sleep at most
-- win: 1 if player 1 wins, -1 if player 2 wins
-
----------------------
-
 weather: Rain, ect
 field: terrains like Electric Terrain
 condition: mainly Trick Room
@@ -30,3 +21,12 @@ tera: 'unknown' if the player haven't use terastalization
 win:
    1 if player 1 wins
    0 if player 2 wins
+   
+---------------------
+
+5.24 update: trainingdata02.csv
+
+- Fixed some problems in _status_other.
+- Wrong data in trainingdata01.csv like “slp:slp” is fixed to be “slp:3”,
+	where 3 means 3 more turns to sleep at most
+- win: 1 if player 1 wins, -1 if player 2 wins
