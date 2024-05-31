@@ -1,0 +1,32 @@
+---------------------
+
+5.24 update: trainingdata02.csv
+
+- Fixed some problems in _status_other.
+- Wrong data in trainingdata01.csv like “slp:slp” is fixed to be “slp:3”,
+	where 3 means 3 more turns to sleep at most
+- win: 1 if player 1 wins, -1 if player 2 wins
+
+---------------------
+
+weather: Rain, ect
+field: terrains like Electric Terrain
+condition: mainly Trick Room
+p1: player 1
+p1_side: Walls(Reflect, Light Screen, etc), Tail Wind, spikes(rear) on player 1's side
+
+pokemon:
+   p1a/p1b: active pokemons of player 1
+   p1c/p1d: backup pokemons of player 1
+
+   p2a/p2b: active pokemons of player 2
+   p2c/p2d: backup pokemons of player 2
+
+status: toxic, burn, etc
+status_other: confusion, encore, etc, end if switched out
+stat_boost: atk +1, etc
+tera: 'unknown' if the player haven't use terastalization
+
+win:
+   1 if player 1 wins
+   0 if player 2 wins
