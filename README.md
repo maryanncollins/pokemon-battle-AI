@@ -1,6 +1,6 @@
 # pokemon-battle-AI
 ## Project Summary</b>
-<b> This repository is part of our Erdos Institute May-Summer 2024 Data Science Boot Camp project. We aim to create a model that can predict the likely winners of competitive Pokémon Video Game Championships (VGC) battles, utilizing replay records from [Pokémon Showdown!](https://pokemonshowdown.com/), a popular online battle simulator. This format is a highly competitive, ‘doubles battle’ where each player selects four out of six Pokémon to battle against their opponent, with two Pokémon active for each player at a time. By reconstructing these replay records into text files, we can extract turn-by-turn information from over 10,000+ battles and curate a database to train our model.
+<b> This repository is part of our Erdos Institute May-Summer 2024 Data Science Boot Camp project. We aim to create a model that can predict the likely winners of competitive Pokémon Video Game Championships (VGC) battles, utilizing replay records from [Pokémon Showdown!](https://pokemonshowdown.com/), a popular online battle simulator. This format is a highly competitive, ‘doubles battle’ where each player selects four out of six Pokémon to battle against their opponent, with two Pokémon active for each player at a time. By reconstructing these replay records into text files, we can extract turn-by-turn information from over 10,000+ battles and curate a database to train our classifiction models.
 
 </b>
 <br>
